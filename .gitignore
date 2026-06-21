@@ -1,0 +1,4 @@
+config.py
+mapping.db
+*.pyc
+__pycache__/
