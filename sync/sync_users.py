@@ -161,8 +161,10 @@ def build_user_fields(contact, entity_id, login):
     return fields
 
 
+PROFILE_ID = 1  # Self-Service
+
+
 def set_user_email(glpi, glpi_user_id, email):
-    """Crée ou met à jour l'email principal de l'utilisateur via UserEmail."""
     try:
         glpi.create("UserEmail", {
             "users_id": glpi_user_id,
@@ -172,6 +174,19 @@ def set_user_email(glpi, glpi_user_id, email):
         })
     except Exception:
         pass  # peut échouer si l'email existe déjà — non bloquant
+
+
+def set_user_profile(glpi, glpi_user_id, entity_id):
+    try:
+        glpi.create("Profile_User", {
+            "users_id":    glpi_user_id,
+            "entities_id": entity_id,
+            "profiles_id": PROFILE_ID,
+            "is_recursive": 0,
+            "is_dynamic":   0,
+        })
+    except Exception:
+        pass  # non bloquant si le rattachement existe déjà
 
 
 # ---------------------------------------------------------------------------
@@ -265,6 +280,7 @@ def sync_users(dry_run=False, stats_only=False):
                         glpi_id = resp[0]["id"] if isinstance(resp, list) else resp["id"]
                         if is_valid_email(email):
                             set_user_email(glpi, glpi_id, email)
+                        set_user_profile(glpi, glpi_id, entity_id)
                         save_user_map(db, codial_id, glpi_id, final_login)
                         used_logins.add(final_login)
                     stats["created"] += 1
